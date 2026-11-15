@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Justice – Legal Consultant Platform</title>
+<style>
+:root{--bg:#f6f4ef;--sf:#fff;--tx:#1c2430;--mu:#5d6675;--ac:#1f4e79;--on:#fff;--gold:#b8862b;--bd:#e0dccf;--ok:#1d7a4a;--bad:#b3261e;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161f;--sf:#19212d;--tx:#e8ebf0;--mu:#9aa4b4;--ac:#6fa8dc;--on:#0b1320;--gold:#e0b04f;--bd:#2a3444;--ok:#4cc38a;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10161f;--sf:#19212d;--tx:#e8ebf0;--mu:#9aa4b4;--ac:#6fa8dc;--on:#0b1320;--gold:#e0b04f;--bd:#2a3444;--ok:#4cc38a;--bad:#ff8a80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:18px 16px 10px;max-width:960px;margin:auto}
+h1{margin:0;font:700 24px Georgia,"Times New Roman",serif}h1 span{color:var(--gold)}
+.sub{color:var(--mu);font-size:13px}
+main{max-width:960px;margin:auto;padding:0 16px 40px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin:8px 0}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:12px 0}
+.tabs button{white-space:nowrap}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
+button{cursor:pointer}button.p,.tabs button.on{background:var(--ac);color:var(--on);border-color:var(--ac)}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 2px}
+input,select,textarea{width:100%}.bar select{width:auto;max-width:100%;flex:1 1 180px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.card h3{margin:0 0 2px;font-size:16px}
+.tag{display:inline-block;font-size:12px;border:1px solid var(--bd);border-radius:20px;padding:1px 8px;margin:2px 4px 2px 0;color:var(--mu)}
+.ok{color:var(--ok);font-weight:600;font-size:12px}.bad{color:var(--bad)}
+.star{color:var(--gold)}
+.row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hid{display:none}
+#msgs{height:380px;overflow-y:auto;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:88%;padding:8px 12px;border-radius:12px;white-space:pre-wrap}
+.m.b{background:var(--bg);border:1px solid var(--bd);align-self:flex-start}.m.u{background:var(--ac);color:var(--on);align-self:flex-end}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.chips button{font-size:13px;border-radius:20px}
+dialog{border:1px solid var(--bd);border-radius:14px;background:var(--sf);color:var(--tx);max-width:520px;width:92%;max-height:86vh;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ac);color:var(--on);padding:10px 16px;border-radius:20px;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+#toast.s{opacity:1}
+.note{font-size:12px;color:var(--mu);margin-top:10px}
+</style></head><body>
+<header><h1>Just<span>ice</span> ⚖️</h1><div class="sub">Find verified advocates in the same locality as your court · read reviews · ask the legal rights assistant</div></header>
+<main>
+<div class="bar"><b>📍 My court / locality:</b><select id="court"></select></div>
+<div class="tabs" id="tabs">
+<button data-t="find" class="on">Find advocate</button><button data-t="bot">Legal assistant</button><button data-t="join">Join as advocate</button><button data-t="admin">Verification <span id="pc"></span></button></div>
+
+<section id="t-find">
+<div class="bar"><select id="area"></select><select id="lang"><option value="">Any language</option><option>Tamil</option><option>English</option><option>Hindi</option><option>Malayalam</option><option>Telugu</option></select><select id="sort"><option value="r">Top rated</option><option value="f">Lowest fee</option><option value="e">Most experience</option></select></div>
+<div id="list" class="grid"></div>
+</section>
+
+<section id="t-bot" class="hid">
+<div id="msgs"></div>
+<div class="chips" id="chips"></div>
+<div class="row"><input id="q" placeholder="Ask e.g. “police arrested my brother, what are his rights?”" style="flex:1"><button class="p" id="send">Send</button></div>
+<div class="note">General legal information for awareness only – not legal advice. Please consult a verified advocate for your case.</div>
+</section>
+
+<section id="t-join" class="hid"><div class="card">
+<h3>Advocate enrollment</h3><div class="sub">Your profile goes live after the Bar Council approval letter is verified.</div>
+<form id="jf">
+<label>Full name</label><input id="jn" required>
+<label>Bar Council enrollment no.</label><input id="jb" placeholder="e.g. MS/1234/2015" required>
+<label>State Bar Council</label><select id="jc"><option>Bar Council of Tamil Nadu &amp; Puducherry</option><option>Bar Council of Kerala</option><option>Bar Council of Karnataka</option><option>Bar Council of Andhra Pradesh</option><option>Other</option></select>
+<label>Court where you practise</label><select id="jt"></select>
+<label>Practice areas (hold Ctrl/Cmd to pick several)</label><select id="ja" multiple size="4"></select>
+<label>Languages (comma separated)</label><input id="jl" value="Tamil, English">
+<label>Experience (years)</label><input id="je" type="number" min="0" max="60" required>
+<label>Consultation fee (₹)</label><input id="jf2" type="number" min="0" required>
+<label>Short bio</label><textarea id="jo" rows="2"></textarea>
+<label>Bar Council approval letter (PDF/JPG)</label><input id="jlt" type="file" accept=".pdf,.jpg,.jpeg,.png" required>
+<div class="row"><button class="p" type="submit">Submit for verification</button></div></form>
+<div class="note">Prototype: the file name is recorded for the verifier; no file is uploaded to a server.</div></div></section>
+
+<section id="t-admin" class="hid"><div class="card"><h3>Verification queue (admin demo)</h3><div id="pend"></div>
+<div class="row"><button id="reset">Reset demo data</button></div></div></section>
+</main>
+<dialog id="dlg"></dialog><div id="toast"></div>
+
+<script>
+const COURTS=["Madurai Bench, Madras High Court","Madurai District Court","Tiruchirappalli District Court","Chennai – Madras High Court","Chennai City Civil Court","Coimbatore District Court","Salem District Court","Tirunelveli District Court"];
+const AREAS=["Criminal","Family","Property","Consumer","Civil","Corporate","Labour","Cyber"];
+const mk=(id,name,bar,court,areas,exp,fee,langs,bio,rv)=>({id,name,bar,court,areas,exp,fee,langs,bio,verified:true,letter:"approval_letter.pdf",reviews:rv.map(x=>({u:x[0],r:x[1],t:x[2]}))});
+const SEED=[
+mk(1,"Adv. S. Karthikeyan","MS/2101/2008",COURTS[0],["Criminal","Civil"],18,4000,["Tamil","English"],"Bail, anticipatory bail and criminal appeals.",[["Murugan",5,"Got bail for my brother in two days. Very clear about the process."],["Anitha",4,"Honest advice, responds quickly."]]),
+mk(2,"Adv. R. Revathi","MS/3320/2014",COURTS[1],["Family","Property"],12,3000,["Tamil","English"],"Matrimonial, maintenance and property partition matters.",[["Lakshmi",5,"Handled my protection order with patience."],["Deepa",5,"Explained every step in Tamil."]]),
+mk(3,"Adv. M. Meena","MS/5120/2019",COURTS[1],["Consumer","Property"],7,1500,["Tamil"],"Consumer commission cases and rent disputes.",[["Anand",4,"Affordable and got my refund."]]),
+mk(4,"Adv. P. Suresh","MS/1180/2004",COURTS[3],["Corporate","Labour"],22,8000,["English","Hindi"],"Contracts, company law and labour disputes.",[["Arun Traders",4,"Strong on contract drafting."]]),
+mk(5,"Adv. V. Prakash","MS/4410/2016",COURTS[2],["Criminal","Cyber"],10,3500,["Tamil","English"],"Cyber crime complaints and criminal defence.",[["Ravi",5,"Helped after a UPI fraud, filed the complaint right away."]]),
+mk(6,"Adv. N. Gayathri","MS/2975/2012",COURTS[5],["Family","Civil"],14,3500,["Tamil","English","Malayalam"],"Divorce, child custody and civil suits.",[["Sheela",5,"Very supportive during a hard time."],["Mohan",4,"Professional."]]),
+mk(7,"Adv. K. Arumugam","MS/3866/2010",COURTS[0],["Property","Civil"],16,4500,["Tamil","English"],"Title verification, land disputes and tenancy.",[["Balu",4,"Knows land records well."]]),
+mk(8,"Adv. T. Selvi","MS/6001/2020",COURTS[6],["Labour","Consumer"],5,1200,["Tamil","English"],"Wages, termination and PF matters.",[])];
+const KB=[
+{k:["arrest","police","custody","detain","lock up"],a:"Criminal",t:"If you or a family member is arrested:\n• You must be told the grounds of arrest.\n• You can consult and be defended by a lawyer of your choice (Article 22).\n• You must be produced before a magistrate within 24 hours (excluding travel time).\n• You may stay silent and inform a relative or friend.\n• In an emergency call 112."},
+{k:["bail","remand","anticipatory"],a:"Criminal",t:"Bail: in bailable offences it is a right. For non-bailable offences the magistrate or sessions court decides. If you fear arrest, a lawyer can apply for anticipatory bail. If you cannot afford a lawyer you can get a free one through legal aid (15100)."},
+{k:["fir","complaint","refuse","file a case"],a:"Criminal",t:"FIR: for a cognizable offence the police must register it and you can ask for a free copy. If they refuse, send the complaint in writing to the Superintendent of Police or approach the Magistrate. A ‘Zero FIR’ can be filed at any police station irrespective of jurisdiction."},
+{k:["domestic","dowry","husband","harass","protection order","violence","abuse"],a:"Family",t:"Under the Protection of Women from Domestic Violence Act, 2005 a woman can seek a protection order, the right to stay in the shared home, monetary relief and custody orders. Contact a Protection Officer, a lawyer or the magistrate court. Helplines: 181 (women), 112 (emergency)."},
+{k:["divorce","maintenance","custody","marriage","alimony","child"],a:"Family",t:"Family matters (divorce, maintenance, child custody) are heard by Family Courts. Mutual-consent divorce is faster; contested divorce needs grounds under the applicable personal law. Maintenance can be claimed by a spouse and children. A family-law advocate in your court town is the best first step."},
+{k:["consumer","refund","defective","product","warranty","service","cheated"],a:"Consumer",t:"Consumer Protection Act, 2019: first send a written complaint or legal notice to the seller. If unresolved, file with the District Consumer Commission (claims up to ₹50 lakh), online through e-Daakhil. National Consumer Helpline: 1915."},
+{k:["property","land","tenant","rent","landlord","evict","patta","sale deed","encroach"],a:"Property",t:"Property: verify the title deed chain, encumbrance certificate and registration before buying. A landlord cannot evict a tenant by force – it needs a legal process, and rent matters in Tamil Nadu fall under the state tenancy law. Keep all agreements and receipts."},
+{k:["cyber","online fraud","upi","scam","hack","morph","otp"],a:"Cyber",t:"Cyber fraud: act fast. Call 1930 or report at cybercrime.gov.in, and inform your bank immediately to try to freeze the transaction. Save screenshots, transaction IDs and messages as evidence."},
+{k:["salary","wages","job","employer","terminated","labour","pf","fired"],a:"Labour",t:"Labour: unpaid wages or wrongful termination can be raised with the Labour Commissioner or Labour Court. Keep your appointment letter, payslips and bank statements. PF complaints can be made to the EPFO grievance portal."},
+{k:["rti","right to information"],a:"Civil",t:"RTI Act, 2005: apply in writing to the Public Information Officer of the department with a ₹10 fee. A reply is due within 30 days; if unsatisfied you can file a first appeal."},
+{k:["free","afford","legal aid","poor","cost","money"],a:"",t:"Free legal aid: the National Legal Services Authority (toll-free 15100) and the District Legal Services Authority at your district court provide free lawyers to women, children, SC/ST persons, persons in custody and those under the income limit."},
+{k:["verify","bar council","fake","genuine","trust"],a:"",t:"On Justice an advocate is listed only after the Bar Council approval letter and enrollment number are verified. You can also ask any advocate for their enrollment number and check it with the State Bar Council."}];
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let A=ld("nc_adv",SEED),R=ld("nc_req",[]);
+function ld(k,d){try{const v=localStorage.getItem(k);if(v)return JSON.parse(v)}catch(e){}return d}
+function sv(){try{localStorage.setItem("nc_adv",JSON.stringify(A));localStorage.setItem("nc_req",JSON.stringify(R))}catch(e){}}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("s");setTimeout(()=>t.classList.remove("s"),2400)}
+const avg=a=>a.reviews.length?a.reviews.reduce((s,x)=>s+x.r,0)/a.reviews.length:0;
+const stars=n=>"★".repeat(Math.round(n))+"☆".repeat(5-Math.round(n));
+const opt=(l,all)=>(all?`<option value="">${all}</option>`:"")+l.map(x=>`<option>${x}</option>`).join("");
+$("#court").innerHTML=opt(COURTS,"All courts");$("#jt").innerHTML=opt(COURTS);$("#area").innerHTML=opt(AREAS,"Any practice area");$("#ja").innerHTML=opt(AREAS);
+
+function list(){
+ const c=$("#court").value,ar=$("#area").value,lg=$("#lang").value,so=$("#sort").value;
+ let r=A.filter(a=>a.verified&&(!c||a.court===c)&&(!ar||a.areas.includes(ar))&&(!lg||a.langs.includes(lg)));
+ r.sort((x,y)=>so==="f"?x.fee-y.fee:so==="e"?y.exp-x.exp:avg(y)-avg(x));
+ $("#list").innerHTML=r.length?r.map(a=>`<div class="card"><h3>${esc(a.name)}</h3><span class="ok">✔ Bar Council verified</span>
+ <div class="sub">📍 ${esc(a.court)}</div><div><span class="star">${stars(avg(a))}</span> ${avg(a)?avg(a).toFixed(1):"New"} <span class="sub">(${a.reviews.length} reviews)</span></div>
+ <div>${a.areas.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}${a.langs.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div>
+ <div class="sub">${a.exp} yrs experience · ₹${a.fee} per consultation</div><p>${esc(a.bio||"")}</p>
+ <div class="row"><button onclick="rev(${a.id})">Reviews</button><button class="p" onclick="con(${a.id})">Request consultation</button></div></div>`).join(""):
+ `<div class="card">No verified advocate found for this filter in the selected court locality. <div class="row"><button onclick="$('#court').value='';list()">Show all courts</button></div></div>`;
+}
+function dlg(h){const d=$("#dlg");d.innerHTML=h+`<div class="row"><button onclick="$('#dlg').close()">Close</button></div>`;d.showModal()}
+function rev(id){const a=A.find(x=>x.id===id);
+ dlg(`<h3>${esc(a.name)}</h3><div class="sub">${esc(a.court)}</div>`+(a.reviews.length?a.reviews.map(x=>`<div class="card" style="margin:8px 0"><span class="star">${stars(x.r)}</span> <b>${esc(x.u)}</b><br>${esc(x.t)}</div>`).join(""):"<p>No reviews yet.</p>")+
+ `<label>Your name</label><input id="rn"><label>Rating</label><select id="rr"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select><label>Your review</label><textarea id="rt" rows="2"></textarea><div class="row"><button class="p" onclick="addRev(${id})">Post review</button></div>`)}
+function addRev(id){const n=$("#rn").value.trim(),t=$("#rt").value.trim();if(!n||!t)return toast("Please enter your name and review");
+ A.find(x=>x.id===id).reviews.unshift({u:n,r:+$("#rr").value,t});sv();$("#dlg").close();list();toast("Review posted")}
+function con(id){const a=A.find(x=>x.id===id);
+ dlg(`<h3>Consult ${esc(a.name)}</h3><label>Your name</label><input id="cn"><label>Phone (10 digits)</label><input id="cp" inputmode="numeric"><label>Briefly describe your case</label><textarea id="cm" rows="3"></textarea><div class="row"><button class="p" onclick="sendReq(${id})">Send request</button></div>`)}
+function sendReq(id){const n=$("#cn").value.trim(),p=$("#cp").value.trim(),m=$("#cm").value.trim();
+ if(!n||!m)return toast("Name and case details are required");if(!/^[6-9]\d{9}$/.test(p))return toast("Enter a valid 10-digit phone number");
+ R.push({id,n,p,m,at:new Date().toISOString()});sv();$("#dlg").close();toast("Request sent. The advocate will contact you.")}
+
+// Chatbot
+function bot(t,html){const d=document.createElement("div");d.className="m b";d.textContent=t;if(html){d.appendChild(html)}$("#msgs").appendChild(d);$("#msgs").scrollTop=1e9}
+function ask(q){q=q.trim();if(!q)return;const u=document.createElement("div");u.className="m u";u.textContent=q;$("#msgs").appendChild(u);
+ const l=q.toLowerCase();let best=null,bs=0;KB.forEach(e=>{const s=e.k.filter(k=>l.includes(k)).length;if(s>bs){bs=s;best=e}});
+ if(!best){bot("I can help with arrest and bail, FIR, domestic violence, divorce and custody, consumer complaints, property and tenancy, cyber fraud, labour issues, RTI and free legal aid. Try rephrasing your question with one of these topics.");return}
+ let b=null;if(best.a){b=document.createElement("div");b.className="row";const x=document.createElement("button");x.className="p";const c=$("#court").value;
+  x.textContent=`Find ${best.a} advocates${c?" at "+c:""}`;x.onclick=()=>{$("#area").value=best.a;go("find");list()};b.appendChild(x)}
+ bot(best.t+"\n\nThis is general information, not legal advice.",b)}
+$("#send").onclick=()=>{ask($("#q").value);$("#q").value=""};$("#q").onkeydown=e=>{if(e.key==="Enter")$("#send").click()};
+$("#chips").innerHTML=["My brother was arrested","How to file an FIR","Domestic violence help","Consumer refund","Online UPI fraud","Free legal aid"].map(x=>`<button>${x}</button>`).join("");
+$("#chips").onclick=e=>{if(e.target.tagName==="BUTTON")ask(e.target.textContent)};
+bot("Hello! I’m the Justice legal assistant. Pick your court above, then ask about your rights – I’ll suggest verified advocates in that locality.");
+
+// Enrollment + admin
+$("#jf").onsubmit=e=>{e.preventDefault();const ar=[...$("#ja").selectedOptions].map(o=>o.value);if(!ar.length)return toast("Select at least one practice area");
+ A.push({id:Date.now(),name:($("#jn").value.trim().startsWith("Adv")?"":"Adv. ")+$("#jn").value.trim(),bar:$("#jb").value.trim(),council:$("#jc").value,court:$("#jt").value,areas:ar,exp:+$("#je").value,fee:+$("#jf2").value,
+ langs:$("#jl").value.split(",").map(s=>s.trim()).filter(Boolean),bio:$("#jo").value.trim(),verified:false,letter:$("#jlt").files[0]?$("#jlt").files[0].name:"",reviews:[]});
+ sv();e.target.reset();pend();toast("Submitted. Your profile goes live after verification.")};
+function pend(){const p=A.filter(a=>!a.verified);$("#pc").textContent=p.length?`(${p.length})`:"";
+ $("#pend").innerHTML=p.length?p.map(a=>`<div class="card" style="margin:8px 0"><b>${esc(a.name)}</b> · ${esc(a.bar)}<div class="sub">${esc(a.council||"")} · ${esc(a.court)}</div><div class="sub">Letter: 📎 ${esc(a.letter)}</div>
+ <div class="row"><button class="p" onclick="vf(${a.id},1)">Approve</button><button onclick="vf(${a.id},0)">Reject</button></div></div>`).join(""):"<p>No pending applications.</p>"}
+function vf(id,ok){if(ok)A.find(a=>a.id===id).verified=true;else A=A.filter(a=>a.id!==id);sv();pend();list();toast(ok?"Advocate approved and listed":"Application rejected")}
+$("#reset").onclick=()=>{A=SEED;R=[];sv();pend();list();toast("Demo data reset")};
+
+function go(t){document.querySelectorAll("section").forEach(s=>s.classList.toggle("hid",s.id!=="t-"+t));document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t))}
+$("#tabs").onclick=e=>{const b=e.target.closest("button");if(b)go(b.dataset.t)};
+["court","area","lang","sort"].forEach(i=>$("#"+i).onchange=list);
+list();pend();
+</script></body></html>
